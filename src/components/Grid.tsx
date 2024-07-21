@@ -33,6 +33,8 @@ export default function Grid() {
     const [shuffleKey, setShuffleKey] = useState(0);
     const [shakeAnimation, setShakeAnimation] = useState(false);
     const [showOneAwayModal, setShowOneAwayModal] = useState(false);
+    const [fadeOutModal, setFadeOutModal] = useState(false);
+
 
     useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({
@@ -103,12 +105,22 @@ export default function Grid() {
                 setShakeAnimation(false);
             }, 500);
 
-            // Check if 3 out of 4 words are correct
-            const correctWords = gameState.game.flatMap((category: { words: string[]; }) => category.words)
-                .filter((word: string) => gameState.selectedCells.includes(word));
-            if (correctWords.length === 3) {
+            // Check if 3 out of 4 words are from the same category
+            const isOneAway = gameState.game.some((category: { words: string[]; }) => {
+                const matchingWords = category.words.filter((word: string) => 
+                    gameState.selectedCells.includes(word)
+                );
+                return matchingWords.length === 3;
+            });
+
+            if (isOneAway) {
+                console.log("One away");
                 setShowOneAwayModal(true);
-                setTimeout(() => setShowOneAwayModal(false), 2000);
+                setFadeOutModal(false);
+                setTimeout(() => {
+                    setFadeOutModal(true);
+                    setTimeout(() => setShowOneAwayModal(false), 300); // Match this with the animation duration
+                }, 4000); // Show for 4 seconds before starting fade out
             }
 
             // Incorrect guess
@@ -116,6 +128,7 @@ export default function Grid() {
                 ...prevState,
                 incorrectGuesses: new Set([...prevState.incorrectGuesses, prevState.selectedCells]),
                 lives: prevState.lives - 1,
+                selectedCells: [], // Clear selected cells after an incorrect guess
             }));
         } else {
             // Correct guess
@@ -132,7 +145,15 @@ export default function Grid() {
     const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried();
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 relative">
+            {showOneAwayModal && (
+                <div className={`fixed left-0 right-0 z-50 flex justify-center ${fadeOutModal ? 'fade-out' : 'fade-in'}
+                                 top-4 md:top-[10%] pt-safe`}>
+                    <div className="bg-black text-white px-4 py-2 rounded-md shadow-lg">
+                        One away...
+                    </div>
+                </div>
+            )}
             {gameState.completedCategories.length > 0 && (
                 <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
                     {gameState.completedCategories.map((category: any, index: number) => (
@@ -167,13 +188,6 @@ export default function Grid() {
                 lives={gameState.lives}
                 submitEnabled={isSubmitEnabled}
             />
-            {showOneAwayModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-black text-white p-4 rounded-md shadow-lg">
-                        One away...
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

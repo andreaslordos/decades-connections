@@ -5,7 +5,7 @@ import React from 'react';
 
 function App() {
   return (
-    <div className="text-center mx-auto space-y-8">
+    <div className="text-center mx-auto space-y-8 pt-safe">
       <Header/>
       <Explainer/>
       <Grid/>
