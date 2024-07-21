@@ -55,6 +55,7 @@ export default function Grid() {
         if (!gameEndProcessed && (gameState.lives === 0 || gameState.completedCategories.length === gameState.originalGame.length)) {
             setGameEnded(true);
             setGameEndProcessed(true);
+            setShowShareModal(true);  // Add this line to show the ShareModal
             
             if (gameState.lives === 0) {
                 // Set all remaining categories to completed with jump animation
@@ -73,14 +74,10 @@ export default function Grid() {
             }
         }
     }, [gameState.lives, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
-
     const handleShareButtonClick = () => {
         setShowShareModal(true);
     };
 
-    const handleCloseShareModal = () => {
-        setShowShareModal(false);
-    };
     useEffect(() => {
         localStorage.setItem('gameMode-decades-agl-123442', JSON.stringify(isEasyMode));
     }, [isEasyMode]);
@@ -287,7 +284,7 @@ export default function Grid() {
                 <ShareModal
                     guesses={gameState.guesses}
                     daysSinceStart={daysSinceStart}
-                    onClose={handleCloseShareModal}
+                    onClose={() => setShowShareModal(false)}
                 />
             )}
             {isEasyMode ? <GuessTracker guesses={gameState.guesses} /> : null}
