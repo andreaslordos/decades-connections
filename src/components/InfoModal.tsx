@@ -19,8 +19,8 @@ export default function InfoModal({ onClose }: InfoModalProps) {
                 <div className="mb-4 space-y-2">
                     <p><strong>Goal:</strong> Find groups of four headlines that were published in the same decade.</p><br />
                     <p><strong>How to play:</strong> Select four headlines and click 'Submit' to guess a category. You can make up to {MAX_MISTAKES} mistakes.</p><br />
-                    <strong>Author:</strong> Andreas Lordos. Heavily inspired by NYT Connections. Check out my website{' '}
-                    <a href="https://lordos.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">here</a>
+                    <p><strong>Author:</strong> Andreas Lordos. Check out{' '} <a href="https://lordos.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">my website</a>. This game is heaviliy inspired by{' '} <a href="https://www.nytimes.com/games/connections" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">NYT Connections</a></p><br/>
+                    <p>Built with &hearts; for my friends.</p>
                 </div>
                 <Button
                     onClick={onClose}
