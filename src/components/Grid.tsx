@@ -18,7 +18,10 @@ export default function Grid() {
     const [fadeOutModal, setFadeOutModal] = useState(false);
     const [jumpAnimation, setJumpAnimation] = useState(false);
     const [animatingCategory, setAnimatingCategory] = useState<any | null>(null);
-    const [showEndGameModal, setShowEndGameModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [gameEnded, setGameEnded] = useState(false);
+    const [gameEndProcessed, setGameEndProcessed] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [gameState, setGameState] = useState<GameState>(() => {
         const savedState = localStorage.getItem('gameState-decades-agl-123442');
         const todaysGame = GetTodaysGame();
@@ -50,12 +53,6 @@ export default function Grid() {
         return savedMode ? JSON.parse(savedMode) : false;
     });
 
-
-    const [gameEnded, setGameEnded] = useState(false);
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [gameEndProcessed, setGameEndProcessed] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-
     const daysSinceStart = useMemo(() => DaysSinceStart(), []);
 
     useEffect(() => {
@@ -70,15 +67,13 @@ export default function Grid() {
             if (remainingCategories.length > 0) {
                 animateCategoriesSequentially(remainingCategories);
             } else {
-                setShowEndGameModal(true);
+                setShowShareModal(true);
             }
         }
     }, [gameState.lives, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
 
     const animateCategoriesSequentially = (categories: any[]) => {
         if (categories.length === 0) {
-            // All categories have been animated, now show the end game modal
-            setShowEndGameModal(true);
             setShowShareModal(true);
             return;
         }
@@ -105,8 +100,8 @@ export default function Grid() {
 
             setTimeout(() => {
                 animateCategoriesSequentially(remainingCategories);
-            }, 500); // Delay before starting the next category animation
-        }, 1500); // Duration of jump animation + delay
+            }, 500);
+        }, 1500);
     };
 
     useEffect(() => {
@@ -204,20 +199,14 @@ export default function Grid() {
                 return matchingWords.length === 3;
             });
 
-            if (isOneAway) {
-                setModalText("One away");
-            } else {
-                setModalText("Incorrect");
-            }
-
+            setModalText(isOneAway ? "One away" : "Incorrect");
             setShowModal(true);
             setFadeOutModal(false);
             setTimeout(() => {
                 setFadeOutModal(true);
-                setTimeout(() => setShowModal(false), 300); // Match this with the animation duration
-            }, 4000); // Show for 4 seconds before starting fade out
+                setTimeout(() => setShowModal(false), 300);
+            }, 4000);
 
-            // Incorrect guess
             setGameState((prevState: GameState) => ({
                 ...prevState,
                 incorrectGuesses: new Set([...prevState.incorrectGuesses, prevState.selectedCells]),
@@ -226,19 +215,16 @@ export default function Grid() {
             }));
             setIsProcessing(false);
         } else {
-            // Correct guess
             setModalText("Correct");
             setShowModal(true);
             setFadeOutModal(false);
             setTimeout(() => {
                 setFadeOutModal(true);
-                setTimeout(() => setShowModal(false), 300); // Match this with the animation duration
-            }, 3000); // Show for 4 seconds before starting fade out
+                setTimeout(() => setShowModal(false), 300);
+            }, 3000);
 
-            // Trigger jump animation
             setJumpAnimation(true);
             
-            // Delay the state update until after the animation completes
             setTimeout(() => {
                 setJumpAnimation(false);
                 setGameState((prevState: GameState) => ({
@@ -252,7 +238,6 @@ export default function Grid() {
             }, 1000);
         }
     };
-
 
     const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried() && !isProcessing;
 
@@ -295,7 +280,7 @@ export default function Grid() {
                         onClick={() => setShowShareModal(true)}
                         text={'View Results'}
                         invertColors={true}
-                        enabled={!isProcessing && showEndGameModal}
+                        enabled={showShareModal}
                     />
                 </div>
             ) : (
@@ -311,7 +296,7 @@ export default function Grid() {
                     isProcessing={isProcessing}
                 />
             )}    
-            {showShareModal && showEndGameModal && (
+            {showShareModal && (
                 <ShareModal
                     guesses={gameState.guesses}
                     daysSinceStart={daysSinceStart}
