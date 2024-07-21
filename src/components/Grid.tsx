@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Cell from "./Cell";
-import { GetTodaysGame, ShuffleArray } from "../lib/helpers";
+import { GetTodaysGame, ShuffleArray, DaysSinceStart } from "../lib/helpers";
 import GameControls from "./GameControls";
 import CompletedCategory from "./CompletedCategory";
 import { MAX_MISTAKES } from "../lib/constants";
@@ -8,6 +8,8 @@ import Modal from "./Modal";
 import { Guess, GameState } from '../types/game';
 import GuessTracker from "./GuessTracker";
 import ToggleSwitch from "./ToggleSwitch";
+import ShareModal from "./ShareModal";
+import Button from "./Button";
 
 export default function Grid() {
     const [gameState, setGameState] = useState<GameState>(() => {
@@ -38,9 +40,46 @@ export default function Grid() {
 
     const [isEasyMode, setIsEasyMode] = useState(() => {
         const savedMode = localStorage.getItem('gameMode-decades-agl-123442');
-        return savedMode ? JSON.parse(savedMode) : true;
+        return savedMode ? JSON.parse(savedMode) : false;
     });
 
+
+    const [gameEnded, setGameEnded] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [gameEndProcessed, setGameEndProcessed] = useState(false);
+
+    const daysSinceStart = useMemo(() => DaysSinceStart(), []);
+
+    useEffect(() => {
+        if (!gameEndProcessed && (gameState.lives === 0 || gameState.completedCategories.length === gameState.originalGame.length)) {
+            setGameEnded(true);
+            setGameEndProcessed(true);
+            
+            if (gameState.lives === 0) {
+                // Set all remaining categories to completed with jump animation
+                const remainingCategories = gameState.game.filter((category: any) =>
+                    !gameState.completedCategories.includes(category)
+                );
+                setJumpAnimation(true);
+                setTimeout(() => {
+                    setGameState((prevState: GameState) => ({
+                        ...prevState,
+                        completedCategories: [...prevState.completedCategories, ...remainingCategories],
+                        game: []
+                    }));
+                    setJumpAnimation(false);
+                }, 1000);
+            }
+        }
+    }, [gameState.lives, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
+
+    const handleShareButtonClick = () => {
+        setShowShareModal(true);
+    };
+
+    const handleCloseShareModal = () => {
+        setShowShareModal(false);
+    };
     useEffect(() => {
         localStorage.setItem('gameMode-decades-agl-123442', JSON.stringify(isEasyMode));
     }, [isEasyMode]);
@@ -217,17 +256,36 @@ export default function Grid() {
                     />
                 ))}
             </div>
-            <GameControls 
-                selectedCellsCount={gameState.selectedCells.length}
-                onDeselectAll={handleDeselectAll}
-                onShuffle={handleShuffle}
-                onSubmit={handleSubmit}
-                lives={gameState.lives}
-                submitEnabled={isSubmitEnabled}
-                isEasyMode={isEasyMode}
-                onModeToggle={handleModeToggle}
-            />
-            {gameState.guesses.length > 0 && isEasyMode ? <GuessTracker guesses={gameState.guesses} /> : null}
+            {gameEnded ? (
+                <div className="flex justify-center">
+                    <Button
+                        onClick={handleShareButtonClick}
+                        text={'View Results'}
+                        invertColors={true}
+                        enabled={true}
+                    />
+                </div>
+            ) : (
+                <GameControls 
+                    selectedCellsCount={gameState.selectedCells.length}
+                    onDeselectAll={handleDeselectAll}
+                    onShuffle={handleShuffle}
+                    onSubmit={handleSubmit}
+                    lives={gameState.lives}
+                    submitEnabled={isSubmitEnabled}
+                    isEasyMode={isEasyMode}
+                    onModeToggle={handleModeToggle}
+                />
+            )}
+            
+            {showShareModal && (
+                <ShareModal
+                    guesses={gameState.guesses}
+                    daysSinceStart={daysSinceStart}
+                    onClose={handleCloseShareModal}
+                />
+            )}
+            {isEasyMode ? <GuessTracker guesses={gameState.guesses} /> : null}
         </div>
     );
 }

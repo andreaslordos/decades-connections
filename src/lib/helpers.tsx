@@ -6,9 +6,12 @@ function DaysBetween(date1: Date, date2: Date): number {
     return Math.round(timeDifference / (1000 * 3600 * 24));
 }
 
+export function DaysSinceStart() {
+    return DaysBetween(new Date(), START_DATE);
+}
+
 export function GetTodaysGame() {
-    const daysSinceStart = DaysBetween(new Date(), START_DATE);
-    let index = daysSinceStart % CONNECTION_GAMES.length
+    let index = DaysSinceStart() % CONNECTION_GAMES.length
     return CONNECTION_GAMES[index];
 }
 
