@@ -11,4 +11,5 @@ export type GameState = {
     completedCategories: any[];
     incorrectGuesses: Set<string[]>;
     guesses: Guess[];
+    isEasyMode: boolean;
 };

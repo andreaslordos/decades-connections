@@ -32,7 +32,8 @@ export default function Grid() {
                 return {
                     ...parsedState,
                     incorrectGuesses: new Set(parsedState.incorrectGuesses.map((guess: string[]) => guess)),
-                    guesses: parsedState.guesses || []
+                    guesses: parsedState.guesses || [],
+                    isEasyMode: parsedState.isEasyMode !== undefined ? parsedState.isEasyMode : false
                 };
             }
         }
@@ -44,13 +45,9 @@ export default function Grid() {
             lives: MAX_MISTAKES,
             completedCategories: [],
             incorrectGuesses: new Set(),
-            guesses: []
+            guesses: [],
+            isEasyMode: false
         };
-    });
-
-    const [isEasyMode, setIsEasyMode] = useState(() => {
-        const savedMode = localStorage.getItem('gameMode-decades-agl-123442');
-        return savedMode ? JSON.parse(savedMode) : false;
     });
 
     const daysSinceStart = useMemo(() => DaysSinceStart(), []);
@@ -105,10 +102,6 @@ export default function Grid() {
     };
 
     useEffect(() => {
-        localStorage.setItem('gameMode-decades-agl-123442', JSON.stringify(isEasyMode));
-    }, [isEasyMode]);
-
-    useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({
             ...gameState,
             incorrectGuesses: Array.from(gameState.incorrectGuesses)
@@ -127,8 +120,19 @@ export default function Grid() {
     }, [gameState.game, shuffleKey]);
 
     const handleModeToggle = () => {
-        setIsEasyMode((prevMode: any) => !prevMode);
+        setGameState((prevState) => ({
+            ...prevState,
+            isEasyMode: !prevState.isEasyMode
+        }));
     };
+
+    useEffect(() => {
+        localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({
+            ...gameState,
+            incorrectGuesses: Array.from(gameState.incorrectGuesses),
+            isEasyMode: gameState.isEasyMode
+        }));
+    }, [gameState]);
         
     const handleCellClick = (word: string) => {
         setGameState((prevState: GameState) => ({
@@ -242,23 +246,23 @@ export default function Grid() {
     const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried() && !isProcessing;
 
     return (
-        <div className="space-y-4 relative">
+        <div className="relative">
             {showModal && (
                 <Modal fadeOutModal={fadeOutModal} text={modalText}/>
             )}
             {gameState.completedCategories.length > 0 && (
-                <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
+                <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12 mb-4">
                     {gameState.completedCategories.map((category: any, index: number) => (
-                        <CompletedCategory
-                            key={index}
-                            name={category.category}
-                            difficulty={category.difficulty}
-                            headlines={category.words}
-                        />
+                            <CompletedCategory
+                                key={index}
+                                name={category.category}
+                                difficulty={category.difficulty}
+                                headlines={category.words}
+                            />
                     ))}
                 </div>
             )}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12 mb-4">
                 {shuffledCells.map((cellData, index) => (
                     <Cell
                         key={`${shuffleKey}-${index}-${cellData.word}`}
@@ -275,26 +279,28 @@ export default function Grid() {
                 ))}
             </div>
             {gameEnded ? (
-                <div className="flex justify-center">
+                <div className="flex justify-center mb-4">
                     <Button
                         onClick={() => setShowShareModal(true)}
                         text={'View Results'}
                         invertColors={true}
-                        enabled={showShareModal}
+                        enabled={gameEnded}
                     />
                 </div>
             ) : (
-                <GameControls 
-                    selectedCellsCount={gameState.selectedCells.length}
-                    onDeselectAll={handleDeselectAll}
-                    onShuffle={handleShuffle}
-                    onSubmit={handleSubmit}
-                    lives={gameState.lives}
-                    submitEnabled={isSubmitEnabled}
-                    isEasyMode={isEasyMode}
-                    onModeToggle={handleModeToggle}
-                    isProcessing={isProcessing}
-                />
+                <div className="mb-4">
+                    <GameControls 
+                        selectedCellsCount={gameState.selectedCells.length}
+                        onDeselectAll={handleDeselectAll}
+                        onShuffle={handleShuffle}
+                        onSubmit={handleSubmit}
+                        lives={gameState.lives}
+                        submitEnabled={isSubmitEnabled}
+                        isEasyMode={gameState.isEasyMode}
+                        onModeToggle={handleModeToggle}
+                        isProcessing={isProcessing}
+                    />
+                </div>
             )}    
             {showShareModal && (
                 <ShareModal
@@ -303,7 +309,11 @@ export default function Grid() {
                     onClose={() => setShowShareModal(false)}
                 />
             )}
-            {isEasyMode ? <GuessTracker guesses={gameState.guesses} /> : null}
+            {gameState.isEasyMode && (
+                <div className="mt-4">
+                    <GuessTracker guesses={gameState.guesses} />
+                </div>
+            )}
         </div>
     );
 }
