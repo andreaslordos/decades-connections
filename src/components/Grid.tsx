@@ -17,6 +17,8 @@ export default function Grid() {
     const [modalText, setModalText] = useState("");
     const [fadeOutModal, setFadeOutModal] = useState(false);
     const [jumpAnimation, setJumpAnimation] = useState(false);
+    const [animatingCategory, setAnimatingCategory] = useState<any | null>(null);
+    const [showEndGameModal, setShowEndGameModal] = useState(false);
     const [gameState, setGameState] = useState<GameState>(() => {
         const savedState = localStorage.getItem('gameState-decades-agl-123442');
         const todaysGame = GetTodaysGame();
@@ -60,27 +62,51 @@ export default function Grid() {
         if (!gameEndProcessed && (gameState.lives === 0 || gameState.completedCategories.length === gameState.originalGame.length)) {
             setGameEnded(true);
             setGameEndProcessed(true);
-            setShowShareModal(true);  // Add this line to show the ShareModal
             
-            if (gameState.lives === 0) {
-                // Set all remaining categories to completed with jump animation
-                const remainingCategories = gameState.game.filter((category: any) =>
-                    !gameState.completedCategories.includes(category)
-                );
-                setJumpAnimation(true);
-                setTimeout(() => {
-                    setGameState((prevState: GameState) => ({
-                        ...prevState,
-                        completedCategories: [...prevState.completedCategories, ...remainingCategories],
-                        game: []
-                    }));
-                    setJumpAnimation(false);
-                }, 1000);
+            const remainingCategories = gameState.game.filter((category: any) =>
+                !gameState.completedCategories.includes(category)
+            );
+            
+            if (remainingCategories.length > 0) {
+                animateCategoriesSequentially(remainingCategories);
+            } else {
+                setShowEndGameModal(true);
             }
         }
     }, [gameState.lives, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
-    const handleShareButtonClick = () => {
-        setShowShareModal(true);
+
+    const animateCategoriesSequentially = (categories: any[]) => {
+        if (categories.length === 0) {
+            // All categories have been animated, now show the end game modal
+            setShowEndGameModal(true);
+            setShowShareModal(true);
+            return;
+        }
+
+        const [currentCategory, ...remainingCategories] = categories;
+        
+        // Set the current category as animating and update selected cells
+        setAnimatingCategory(currentCategory);
+        setGameState((prevState: GameState) => ({
+            ...prevState,
+            selectedCells: currentCategory.words
+        }));
+
+        setTimeout(() => {
+            // Add the current category to completed categories and remove from game
+            setGameState((prevState: GameState) => ({
+                ...prevState,
+                completedCategories: [...prevState.completedCategories, currentCategory],
+                game: prevState.game.filter((cat: any) => cat !== currentCategory),
+                selectedCells: [] // Clear selected cells after animation
+            }));
+
+            setAnimatingCategory(null);
+
+            setTimeout(() => {
+                animateCategoriesSequentially(remainingCategories);
+            }, 500); // Delay before starting the next category animation
+        }, 1500); // Duration of jump animation + delay
     };
 
     useEffect(() => {
@@ -254,22 +280,22 @@ export default function Grid() {
                         difficulty={cellData.difficulty}
                         word={cellData.word}
                         isSelected={gameState.selectedCells.includes(cellData.word)}
-                        onClick={() => !isProcessing && handleCellClick(cellData.word)}
-                        disableCursor={gameState.selectedCells.length >= 4 || isProcessing}
+                        onClick={() => !isProcessing && !gameEnded && handleCellClick(cellData.word)}
+                        disableCursor={gameState.selectedCells.length >= 4 || isProcessing || gameEnded}
                         shouldAnimate={true}
                         shakeAnimation={shakeAnimation}
-                        jumpAnimation={jumpAnimation}
-                        jumpDelay={gameState.selectedCells.indexOf(cellData.word) * 100}
+                        jumpAnimation={gameEnded ? animatingCategory !== null && animatingCategory.words.includes(cellData.word) : jumpAnimation}
+                        jumpDelay={gameEnded ? (animatingCategory?.words.indexOf(cellData.word) * 100 || 0) : gameState.selectedCells.indexOf(cellData.word) * 100}
                     />
                 ))}
             </div>
             {gameEnded ? (
                 <div className="flex justify-center">
                     <Button
-                        onClick={handleShareButtonClick}
+                        onClick={() => setShowShareModal(true)}
                         text={'View Results'}
                         invertColors={true}
-                        enabled={!isProcessing}
+                        enabled={!isProcessing && showEndGameModal}
                     />
                 </div>
             ) : (
@@ -285,7 +311,7 @@ export default function Grid() {
                     isProcessing={isProcessing}
                 />
             )}    
-            {showShareModal && (
+            {showShareModal && showEndGameModal && (
                 <ShareModal
                     guesses={gameState.guesses}
                     daysSinceStart={daysSinceStart}
