@@ -12,26 +12,33 @@ export default function Grid() {
         
         if (savedState) {
             const parsedState = JSON.parse(savedState);
-            // Check if the saved game is from today
             if (JSON.stringify(parsedState.originalGame) === JSON.stringify(todaysGame)) {
-                return parsedState;
+                return {
+                    ...parsedState,
+                    incorrectGuesses: new Set(parsedState.incorrectGuesses.map((guess: string[]) => guess))
+                };
             }
         }
         
-        // If there's no saved state or it's not from today, start a new game
         return {
             game: todaysGame,
-            originalGame: todaysGame, // Store the original unshuffled game
+            originalGame: todaysGame,
             selectedCells: [],
             lives: MAX_MISTAKES,
             completedCategories: [],
+            incorrectGuesses: new Set(),
         };
     });
 
     const [shuffleKey, setShuffleKey] = useState(0);
+    const [shakeAnimation, setShakeAnimation] = useState(false);
+    const [showOneAwayModal, setShowOneAwayModal] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem('gameState-decades-agl-123442', JSON.stringify(gameState));
+        localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({
+            ...gameState,
+            incorrectGuesses: Array.from(gameState.incorrectGuesses)
+        }));
     }, [gameState]);
 
     const shuffledCells = useMemo(() => {
@@ -74,6 +81,14 @@ export default function Grid() {
         setShuffleKey(prevKey => prevKey + 1);
     };
 
+    const isCurrentGuessAlreadyTried = () => {
+        const currentGuessSet = new Set(gameState.selectedCells);
+        return Array.from(gameState.incorrectGuesses).some((guess: any) => 
+            guess.length === currentGuessSet.size &&
+            guess.every((word: string) => currentGuessSet.has(word))
+        );
+    };
+
     const handleSubmit = () => {
         if (gameState.selectedCells.length !== 4) return;
 
@@ -81,21 +96,42 @@ export default function Grid() {
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
 
-        setGameState((prevState: any) => ({
-            ...prevState,
-            game: selectedCategory 
-                ? prevState.game.filter((category: any) => category !== selectedCategory)
-                : prevState.game,
-            selectedCells: [],
-            lives: selectedCategory ? prevState.lives : prevState.lives - 1,
-            completedCategories: selectedCategory 
-                ? [...prevState.completedCategories, selectedCategory]
-                : prevState.completedCategories,
-        }));
+        setGameState((prevState: any) => {
+            const newState = {
+                ...prevState,
+                game: selectedCategory 
+                    ? prevState.game.filter((category: any) => category !== selectedCategory)
+                    : prevState.game,
+                selectedCells: [],
+                lives: selectedCategory ? prevState.lives : prevState.lives - 1,
+                completedCategories: selectedCategory 
+                    ? [...prevState.completedCategories, selectedCategory]
+                    : prevState.completedCategories,
+            };
+
+            if (!selectedCategory) {
+                // Incorrect guess
+                newState.incorrectGuesses = new Set([...prevState.incorrectGuesses, prevState.selectedCells]);
+                setShakeAnimation(true);
+                setTimeout(() => setShakeAnimation(false), 500);
+
+                // Check if 3 out of 4 words are correct
+                const correctWords = prevState.game.flatMap((category: { words: string[]; }) => category.words)
+                    .filter((word: string) => prevState.selectedCells.includes(word));
+                if (correctWords.length === 3) {
+                    setShowOneAwayModal(true);
+                    setTimeout(() => setShowOneAwayModal(false), 2000);
+                }
+            }
+
+            return newState;
+        });
     };
 
+    const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried();
+
     return (
-        <div className="space-y-4"> {/* Reduced space-y value */}
+        <div className="space-y-4">
             {gameState.completedCategories.length > 0 && (
                 <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
                     {gameState.completedCategories.map((category: any, index: number) => (
@@ -108,7 +144,7 @@ export default function Grid() {
                     ))}
                 </div>
             )}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
+            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12 ${shakeAnimation ? 'animate-shake' : ''}`}>
                 {shuffledCells.map((cellData, index) => (
                     <Cell
                         key={`${shuffleKey}-${index}-${cellData.word}`}
@@ -127,8 +163,15 @@ export default function Grid() {
                 onShuffle={handleShuffle}
                 onSubmit={handleSubmit}
                 lives={gameState.lives}
+                submitEnabled={isSubmitEnabled}
             />
+            {showOneAwayModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="bg-black text-white p-4 rounded-md shadow-lg">
+                        One away...
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
-

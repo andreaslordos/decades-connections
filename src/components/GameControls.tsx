@@ -7,11 +7,11 @@ type GameControlsProps = {
     onDeselectAll: () => void;
     onShuffle: () => void;
     onSubmit: () => void;
+    submitEnabled: boolean;
     lives: number;
 };
 
-export default function GameControls({ selectedCellsCount, onDeselectAll, onShuffle, onSubmit, lives }: GameControlsProps) {
-    const submitEnabled = selectedCellsCount >= 4;
+export default function GameControls({ selectedCellsCount, onDeselectAll, onShuffle, onSubmit, submitEnabled, lives }: GameControlsProps) {
     const shuffleEnabled = true;
     const deselectAllEnabled = selectedCellsCount > 0;
     const circles = Array.from({ length: lives }, (_, index) => (
