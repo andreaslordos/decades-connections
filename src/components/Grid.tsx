@@ -7,7 +7,6 @@ import { MAX_MISTAKES } from "../lib/constants";
 import Modal from "./Modal";
 import { Guess, GameState } from '../types/game';
 import GuessTracker from "./GuessTracker";
-import ToggleSwitch from "./ToggleSwitch";
 import ShareModal from "./ShareModal";
 import Button from "./Button";
 
@@ -202,6 +201,14 @@ export default function Grid() {
             setIsProcessing(false);
         } else {
             // Correct guess
+            setModalText("Correct");
+            setShowModal(true);
+            setFadeOutModal(false);
+            setTimeout(() => {
+                setFadeOutModal(true);
+                setTimeout(() => setShowModal(false), 300); // Match this with the animation duration
+            }, 3000); // Show for 4 seconds before starting fade out
+
             // Trigger jump animation
             setJumpAnimation(true);
             
