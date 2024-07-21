@@ -57,8 +57,8 @@ export default function Cell({
                 animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms',
             }}
         >
-            <span className={`text-xs sm:text-sm md:text-base ${isSelected ? 'text-white' : ''}`}>
-                {word}
+            <span className={`md:text-base ${isSelected ? 'text-white' : ''}`}>
+                <p className="text-mobile sm:text-h6">{word}</p>
             </span>
         </div>
     );

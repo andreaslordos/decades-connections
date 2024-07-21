@@ -24,8 +24,8 @@ export default function CompletedCategory({ name, difficulty, headlines }: Compl
                      justify-center 
                      rounded
                     `}>
-      <div className="font-bold mb-1">{name}</div>
-      <div className="text-sm uppercase whitespace-pre-line">{headlines.join('\n')}</div>
+      <div className="font-bold mb-1 text-mobile sm:text-sm">{name}</div>
+      <div className="text-mobile sm:text-sm uppercase whitespace-pre-line">{headlines.join('\n')}</div>
     </div>
   );
 }

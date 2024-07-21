@@ -19,6 +19,7 @@ module.exports = {
       'h4': '1.25rem', // 20px
       'h5': '1.125rem', // 18px
       'h6': '1rem', // 16px
+      'mobile': '0.75rem' // 8px
     },
     colors: {
       'unselected': '#efefe6',
