@@ -96,37 +96,38 @@ export default function Grid() {
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
 
-        setGameState((prevState: any) => {
-            const newState = {
-                ...prevState,
-                game: selectedCategory 
-                    ? prevState.game.filter((category: any) => category !== selectedCategory)
-                    : prevState.game,
-                selectedCells: [],
-                lives: selectedCategory ? prevState.lives : prevState.lives - 1,
-                completedCategories: selectedCategory 
-                    ? [...prevState.completedCategories, selectedCategory]
-                    : prevState.completedCategories,
-            };
+        if (!selectedCategory) {
+            // Trigger shake animation
+            setShakeAnimation(true);
+            setTimeout(() => {
+                setShakeAnimation(false);
+            }, 500);
 
-            if (!selectedCategory) {
-                // Incorrect guess
-                newState.incorrectGuesses = new Set([...prevState.incorrectGuesses, prevState.selectedCells]);
-                setShakeAnimation(true);
-                setTimeout(() => setShakeAnimation(false), 500);
-
-                // Check if 3 out of 4 words are correct
-                const correctWords = prevState.game.flatMap((category: { words: string[]; }) => category.words)
-                    .filter((word: string) => prevState.selectedCells.includes(word));
-                if (correctWords.length === 3) {
-                    setShowOneAwayModal(true);
-                    setTimeout(() => setShowOneAwayModal(false), 2000);
-                }
+            // Check if 3 out of 4 words are correct
+            const correctWords = gameState.game.flatMap((category: { words: string[]; }) => category.words)
+                .filter((word: string) => gameState.selectedCells.includes(word));
+            if (correctWords.length === 3) {
+                setShowOneAwayModal(true);
+                setTimeout(() => setShowOneAwayModal(false), 2000);
             }
 
-            return newState;
-        });
+            // Incorrect guess
+            setGameState((prevState: any) => ({
+                ...prevState,
+                incorrectGuesses: new Set([...prevState.incorrectGuesses, prevState.selectedCells]),
+                lives: prevState.lives - 1,
+            }));
+        } else {
+            // Correct guess
+            setGameState((prevState: any) => ({
+                ...prevState,
+                game: prevState.game.filter((category: any) => category !== selectedCategory),
+                selectedCells: [],
+                completedCategories: [...prevState.completedCategories, selectedCategory],
+            }));
+        }
     };
+
 
     const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried();
 
@@ -144,7 +145,7 @@ export default function Grid() {
                     ))}
                 </div>
             )}
-            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12 ${shakeAnimation ? 'animate-shake' : ''}`}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
                 {shuffledCells.map((cellData, index) => (
                     <Cell
                         key={`${shuffleKey}-${index}-${cellData.word}`}
@@ -154,6 +155,7 @@ export default function Grid() {
                         onClick={() => handleCellClick(cellData.word)}
                         disableCursor={gameState.selectedCells.length >= 4}
                         shouldAnimate={true}
+                        shakeAnimation={shakeAnimation}
                     />
                 ))}
             </div>

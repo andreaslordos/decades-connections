@@ -7,15 +7,23 @@ type CellProps = {
     onClick: () => void;
     disableCursor: boolean;
     shouldAnimate: boolean;
+    shakeAnimation: boolean;
 };
 
-export default function Cell({ word, isSelected, onClick, disableCursor, shouldAnimate }: CellProps) {
+export default function Cell({ 
+    word, 
+    isSelected, 
+    onClick, 
+    disableCursor, 
+    shouldAnimate,
+    shakeAnimation
+}: CellProps) {
     const [animate, setAnimate] = useState(false);
 
     useEffect(() => {
         if (shouldAnimate) {
             setAnimate(true);
-            const timer = setTimeout(() => setAnimate(false), 300); // Adjust the timeout duration to match the CSS animation duration
+            const timer = setTimeout(() => setAnimate(false), 300);
             return () => clearTimeout(timer);
         }
     }, [shouldAnimate]);
@@ -32,6 +40,7 @@ export default function Cell({ word, isSelected, onClick, disableCursor, shouldA
                         select-none
                         ${isSelected ? 'bg-selected text-white' : 'bg-unselected'}
                         ${(!disableCursor || isSelected) ? 'hover:cursor-pointer active:scale-95 duration-150 transition-transform' : 'hover:cursor-default'}
+                        ${isSelected && shakeAnimation ? 'animate-shake' : ''}
                         `}
             onClick={onClick}
         >
