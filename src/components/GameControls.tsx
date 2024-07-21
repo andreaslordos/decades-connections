@@ -12,11 +12,22 @@ type GameControlsProps = {
     lives: number;
     isEasyMode: boolean;
     onModeToggle: () => void;
+    isProcessing: boolean;
 };
 
-export default function GameControls({ selectedCellsCount, onDeselectAll, onShuffle, onSubmit, submitEnabled, lives, isEasyMode, onModeToggle }: GameControlsProps) {
-    const shuffleEnabled = true;
-    const deselectAllEnabled = selectedCellsCount > 0;
+export default function GameControls({ 
+    selectedCellsCount, 
+    onDeselectAll, 
+    onShuffle, 
+    onSubmit, 
+    submitEnabled, 
+    lives, 
+    isEasyMode, 
+    onModeToggle,
+    isProcessing
+}: GameControlsProps) {
+    const shuffleEnabled = !isProcessing;
+    const deselectAllEnabled = selectedCellsCount > 0 && !isProcessing;
     const circles = Array.from({ length: lives }, (_, index) => (
         <span
             key={index}

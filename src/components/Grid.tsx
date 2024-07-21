@@ -47,6 +47,7 @@ export default function Grid() {
     const [gameEnded, setGameEnded] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [gameEndProcessed, setGameEndProcessed] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const daysSinceStart = useMemo(() => DaysSinceStart(), []);
 
@@ -152,8 +153,10 @@ export default function Grid() {
     };
 
     const handleSubmit = () => {
-        if (gameState.selectedCells.length !== 4) return;
-                
+        if (gameState.selectedCells.length !== 4 || isProcessing) return;
+        
+        setIsProcessing(true);
+        
         const selectedCategory = gameState.game.find((category: { words: any[]; }) => 
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
@@ -201,6 +204,7 @@ export default function Grid() {
                 lives: prevState.lives - 1,
                 guesses: [...prevState.guesses, newGuess]
             }));
+            setIsProcessing(false);
         } else {
             // Correct guess
             // Trigger jump animation
@@ -216,12 +220,13 @@ export default function Grid() {
                     completedCategories: [...prevState.completedCategories, selectedCategory],
                     guesses: [...prevState.guesses, newGuess]
                 }));
-            }, 1000); // This should match the duration of your jump animation
+                setIsProcessing(false);
+            }, 1000);
         }
     };
 
 
-    const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried();
+    const isSubmitEnabled = gameState.selectedCells.length === 4 && !isCurrentGuessAlreadyTried() && !isProcessing;
 
     return (
         <div className="space-y-4 relative">
@@ -247,8 +252,8 @@ export default function Grid() {
                         difficulty={cellData.difficulty}
                         word={cellData.word}
                         isSelected={gameState.selectedCells.includes(cellData.word)}
-                        onClick={() => handleCellClick(cellData.word)}
-                        disableCursor={gameState.selectedCells.length >= 4}
+                        onClick={() => !isProcessing && handleCellClick(cellData.word)}
+                        disableCursor={gameState.selectedCells.length >= 4 || isProcessing}
                         shouldAnimate={true}
                         shakeAnimation={shakeAnimation}
                         jumpAnimation={jumpAnimation}
@@ -262,7 +267,7 @@ export default function Grid() {
                         onClick={handleShareButtonClick}
                         text={'View Results'}
                         invertColors={true}
-                        enabled={true}
+                        enabled={!isProcessing}
                     />
                 </div>
             ) : (
@@ -275,9 +280,9 @@ export default function Grid() {
                     submitEnabled={isSubmitEnabled}
                     isEasyMode={isEasyMode}
                     onModeToggle={handleModeToggle}
+                    isProcessing={isProcessing}
                 />
-            )}
-            
+            )}    
             {showShareModal && (
                 <ShareModal
                     guesses={gameState.guesses}
