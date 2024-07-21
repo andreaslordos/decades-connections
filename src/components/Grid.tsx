@@ -33,7 +33,8 @@ export default function Grid() {
 
     const [shuffleKey, setShuffleKey] = useState(0);
     const [shakeAnimation, setShakeAnimation] = useState(false);
-    const [showOneAwayModal, setShowOneAwayModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalText, setModalText] = useState("");
     const [fadeOutModal, setFadeOutModal] = useState(false);
     const [jumpAnimation, setJumpAnimation] = useState(false);
 
@@ -116,14 +117,17 @@ export default function Grid() {
             });
 
             if (isOneAway) {
-                console.log("One away");
-                setShowOneAwayModal(true);
-                setFadeOutModal(false);
-                setTimeout(() => {
-                    setFadeOutModal(true);
-                    setTimeout(() => setShowOneAwayModal(false), 300); // Match this with the animation duration
-                }, 4000); // Show for 4 seconds before starting fade out
+                setModalText("One away");
+            } else {
+                setModalText("Incorrect");
             }
+
+            setShowModal(true);
+            setFadeOutModal(false);
+            setTimeout(() => {
+                setFadeOutModal(true);
+                setTimeout(() => setShowModal(false), 300); // Match this with the animation duration
+            }, 4000); // Show for 4 seconds before starting fade out
 
             // Incorrect guess
             setGameState((prevState: any) => ({
@@ -154,8 +158,8 @@ export default function Grid() {
 
     return (
         <div className="space-y-4 relative">
-            {showOneAwayModal && (
-                <Modal fadeOutModal={fadeOutModal} text='One away'/>
+            {showModal && (
+                <Modal fadeOutModal={fadeOutModal} text={modalText}/>
             )}
             {gameState.completedCategories.length > 0 && (
                 <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
