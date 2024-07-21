@@ -16,7 +16,7 @@ export default function GuessTracker({ guesses }: GuessTrackerProps) {
     return (
         <div className="mt-8 mx-auto w-11/12 md:w-8/12">
             <h2 className="text-xl font-bold mb-4">Attempts</h2>
-            {guesses.map((guess, index) => (
+            {[...guesses].reverse().map((guess, index) => (
                 <div key={index} className="mb-4">
                     <hr/><br/>
                     {guess.words.map((word, wordIndex) => (

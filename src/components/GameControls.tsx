@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "./Button";
 import { MAX_MISTAKES } from "../lib/constants";
+import ToggleSwitch from "./ToggleSwitch";
 
 type GameControlsProps = {
     selectedCellsCount: number;
@@ -9,9 +10,11 @@ type GameControlsProps = {
     onSubmit: () => void;
     submitEnabled: boolean;
     lives: number;
+    isEasyMode: boolean;
+    onModeToggle: () => void;
 };
 
-export default function GameControls({ selectedCellsCount, onDeselectAll, onShuffle, onSubmit, submitEnabled, lives }: GameControlsProps) {
+export default function GameControls({ selectedCellsCount, onDeselectAll, onShuffle, onSubmit, submitEnabled, lives, isEasyMode, onModeToggle }: GameControlsProps) {
     const shuffleEnabled = true;
     const deselectAllEnabled = selectedCellsCount > 0;
     const circles = Array.from({ length: lives }, (_, index) => (
@@ -28,6 +31,10 @@ export default function GameControls({ selectedCellsCount, onDeselectAll, onShuf
                 <div className="flex space-x-1" style={{ width: `${MAX_MISTAKES * 1.25}rem` }}>
                     {circles}
                 </div>
+                <ToggleSwitch
+                    isEasyMode={isEasyMode}
+                    handleToggle={onModeToggle}
+                />
             </div>
             <div className="space-x-4 flex justify-center">
                 <Button text="Shuffle" enabled={shuffleEnabled} onClick={onShuffle} />

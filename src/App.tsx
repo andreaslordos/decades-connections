@@ -9,6 +9,7 @@ function App() {
       <Header/>
       <Explainer/>
       <Grid/>
+      <div className="h-8"/>
     </div>
   );
 }

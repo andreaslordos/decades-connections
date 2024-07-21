@@ -7,6 +7,7 @@ import { MAX_MISTAKES } from "../lib/constants";
 import Modal from "./Modal";
 import { Guess, GameState } from '../types/game';
 import GuessTracker from "./GuessTracker";
+import ToggleSwitch from "./ToggleSwitch";
 
 export default function Grid() {
     const [gameState, setGameState] = useState<GameState>(() => {
@@ -35,6 +36,15 @@ export default function Grid() {
         };
     });
 
+    const [isEasyMode, setIsEasyMode] = useState(() => {
+        const savedMode = localStorage.getItem('gameMode-decades-agl-123442');
+        return savedMode ? JSON.parse(savedMode) : true;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('gameMode-decades-agl-123442', JSON.stringify(isEasyMode));
+    }, [isEasyMode]);
+
     const [shuffleKey, setShuffleKey] = useState(0);
     const [shakeAnimation, setShakeAnimation] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -60,6 +70,10 @@ export default function Grid() {
         );
         return ShuffleArray(cells);
     }, [gameState.game, shuffleKey]);
+
+    const handleModeToggle = () => {
+        setIsEasyMode((prevMode: any) => !prevMode);
+    };
         
     const handleCellClick = (word: string) => {
         setGameState((prevState: GameState) => ({
@@ -210,8 +224,10 @@ export default function Grid() {
                 onSubmit={handleSubmit}
                 lives={gameState.lives}
                 submitEnabled={isSubmitEnabled}
+                isEasyMode={isEasyMode}
+                onModeToggle={handleModeToggle}
             />
-            {gameState.guesses.length > 0 ? <GuessTracker guesses={gameState.guesses} /> : null}
+            {gameState.guesses.length > 0 && isEasyMode ? <GuessTracker guesses={gameState.guesses} /> : null}
         </div>
     );
 }
