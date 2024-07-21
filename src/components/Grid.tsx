@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import Cell from "./Cell";
 import { GetTodaysGame, ShuffleArray } from "../lib/helpers";
 import GameControls from "./GameControls";
+import CompletedCategory from "./CompletedCategory";
 import { MAX_MISTAKES } from "../lib/constants";
 
 export default function Grid() {
     const [gameState, setGameState] = useState(() => {
-        const savedState = localStorage.getItem('gameState-decades-agl');
+        const savedState = localStorage.getItem('gameState-decades-agl-123442');
         if (savedState) {
             return JSON.parse(savedState);
         }
@@ -14,13 +15,14 @@ export default function Grid() {
             game: ShuffleArray(GetTodaysGame()),
             selectedCells: [],
             lives: MAX_MISTAKES,
+            completedCategories: [],
         };
     });
 
     const [shuffleKey, setShuffleKey] = useState(0);
 
     useEffect(() => {
-        localStorage.setItem('gameState-decades-agl', JSON.stringify(gameState));
+        localStorage.setItem('gameState-decades-agl-123442', JSON.stringify(gameState));
     }, [gameState]);
 
     const handleCellClick = (word: string) => {
@@ -59,13 +61,16 @@ export default function Grid() {
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
 
-        setGameState((prevState: { game: any[]; selectedCells: string[]; lives: number; }) => ({
+        setGameState((prevState: any) => ({
             ...prevState,
             game: selectedCategory 
                 ? prevState.game.filter((category: any) => category !== selectedCategory)
                 : prevState.game,
-            selectedCells: selectedCategory ? [] : prevState.selectedCells,
-            lives: selectedCategory ? prevState.lives : prevState.lives - 1
+            selectedCells: [],
+            lives: selectedCategory ? prevState.lives : prevState.lives - 1,
+            completedCategories: selectedCategory 
+                ? [...prevState.completedCategories, selectedCategory]
+                : prevState.completedCategories,
         }));
     };
 
@@ -89,7 +94,19 @@ export default function Grid() {
     }
 
     return (
-        <>
+        <div className="space-y-4"> {/* Reduced space-y value */}
+            {gameState.completedCategories.length > 0 && (
+                <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
+                    {gameState.completedCategories.map((category: any, index: number) => (
+                        <CompletedCategory
+                            key={index}
+                            name={category.category}
+                            difficulty={category.difficulty}
+                            headlines={category.words}
+                        />
+                    ))}
+                </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
                 {cells}
             </div>
@@ -100,6 +117,7 @@ export default function Grid() {
                 onSubmit={handleSubmit}
                 lives={gameState.lives}
             />
-        </>
+        </div>
     );
 }
+
