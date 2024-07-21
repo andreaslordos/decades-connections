@@ -8,11 +8,20 @@ import { MAX_MISTAKES } from "../lib/constants";
 export default function Grid() {
     const [gameState, setGameState] = useState(() => {
         const savedState = localStorage.getItem('gameState-decades-agl-123442');
+        const todaysGame = GetTodaysGame();
+        
         if (savedState) {
-            return JSON.parse(savedState);
+            const parsedState = JSON.parse(savedState);
+            // Check if the saved game is from today
+            if (JSON.stringify(parsedState.originalGame) === JSON.stringify(todaysGame)) {
+                return parsedState;
+            }
         }
+        
+        // If there's no saved state or it's not from today, start a new game
         return {
-            game: ShuffleArray(GetTodaysGame()),
+            game: ShuffleArray(todaysGame),
+            originalGame: todaysGame, // Store the original unshuffled game
             selectedCells: [],
             lives: MAX_MISTAKES,
             completedCategories: [],
@@ -24,7 +33,7 @@ export default function Grid() {
     useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify(gameState));
     }, [gameState]);
-
+        
     const handleCellClick = (word: string) => {
         setGameState((prevState: { selectedCells: string[]; }) => ({
             ...prevState,
