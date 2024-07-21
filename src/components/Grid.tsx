@@ -5,9 +5,11 @@ import GameControls from "./GameControls";
 import CompletedCategory from "./CompletedCategory";
 import { MAX_MISTAKES } from "../lib/constants";
 import Modal from "./Modal";
+import { Guess, GameState } from '../types/game';
+import GuessTracker from "./GuessTracker";
 
 export default function Grid() {
-    const [gameState, setGameState] = useState(() => {
+    const [gameState, setGameState] = useState<GameState>(() => {
         const savedState = localStorage.getItem('gameState-decades-agl-123442');
         const todaysGame = GetTodaysGame();
         
@@ -16,7 +18,8 @@ export default function Grid() {
             if (JSON.stringify(parsedState.originalGame) === JSON.stringify(todaysGame)) {
                 return {
                     ...parsedState,
-                    incorrectGuesses: new Set(parsedState.incorrectGuesses.map((guess: string[]) => guess))
+                    incorrectGuesses: new Set(parsedState.incorrectGuesses.map((guess: string[]) => guess)),
+                    guesses: parsedState.guesses || []
                 };
             }
         }
@@ -28,6 +31,7 @@ export default function Grid() {
             lives: MAX_MISTAKES,
             completedCategories: [],
             incorrectGuesses: new Set(),
+            guesses: []
         };
     });
 
@@ -58,7 +62,7 @@ export default function Grid() {
     }, [gameState.game, shuffleKey]);
         
     const handleCellClick = (word: string) => {
-        setGameState((prevState: { selectedCells: string[]; }) => ({
+        setGameState((prevState: GameState) => ({
             ...prevState,
             selectedCells: prevState.selectedCells.includes(word)
                 ? prevState.selectedCells.filter((cell: string) => cell !== word)
@@ -69,14 +73,14 @@ export default function Grid() {
     };
 
     const handleDeselectAll = () => {
-        setGameState((prevState: any) => ({
+        setGameState((prevState: GameState) => ({
             ...prevState,
             selectedCells: []
         }));
     };
 
     const handleShuffle = () => {
-        setGameState((prevState: { game: any[]; }) => ({
+        setGameState((prevState: GameState) => ({
             ...prevState,
             game: ShuffleArray(prevState.game.map((category: { words: any; }) => ({
                 ...category,
@@ -100,6 +104,14 @@ export default function Grid() {
         const selectedCategory = gameState.game.find((category: { words: any[]; }) => 
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
+
+        const newGuess: Guess = {
+            words: gameState.selectedCells,
+            categories: gameState.selectedCells.map(word => {
+                const category = gameState.originalGame.find(cat => cat.words.includes(word));
+                return category ? category.difficulty : 0;
+            })
+        };
 
         if (!selectedCategory) {
             // Trigger shake animation
@@ -130,10 +142,11 @@ export default function Grid() {
             }, 4000); // Show for 4 seconds before starting fade out
 
             // Incorrect guess
-            setGameState((prevState: any) => ({
+            setGameState((prevState: GameState) => ({
                 ...prevState,
                 incorrectGuesses: new Set([...prevState.incorrectGuesses, prevState.selectedCells]),
                 lives: prevState.lives - 1,
+                guesses: [...prevState.guesses, newGuess]
             }));
         } else {
             // Correct guess
@@ -143,11 +156,12 @@ export default function Grid() {
             // Delay the state update until after the animation completes
             setTimeout(() => {
                 setJumpAnimation(false);
-                setGameState((prevState: any) => ({
+                setGameState((prevState: GameState) => ({
                     ...prevState,
                     game: prevState.game.filter((category: any) => category !== selectedCategory),
                     selectedCells: [],
                     completedCategories: [...prevState.completedCategories, selectedCategory],
+                    guesses: [...prevState.guesses, newGuess]
                 }));
             }, 1000); // This should match the duration of your jump animation
         }
@@ -197,6 +211,7 @@ export default function Grid() {
                 lives={gameState.lives}
                 submitEnabled={isSubmitEnabled}
             />
+            {gameState.guesses.length > 0 ? <GuessTracker guesses={gameState.guesses} /> : null}
         </div>
     );
 }
