@@ -1,10 +1,10 @@
 import React from 'react';
 
 const difficultyColors = {
-  1: 'bg-yellow-200',
-  2: 'bg-green-200',
-  3: 'bg-blue-200',
-  4: 'bg-purple-200',
+  1: 'bg-[#f9df6d]',
+  2: 'bg-[#a0c35a]',
+  3: 'bg-[#b0c4ef]',
+  4: 'bg-[#ba81c5]',
 };
 
 type CompletedCategoryProps = {
@@ -25,7 +25,7 @@ export default function CompletedCategory({ name, difficulty, headlines }: Compl
                      rounded
                     `}>
       <div className="font-bold mb-1">{name}</div>
-      <div className="text-sm uppercase">{headlines.join(', ')}</div>
+      <div className="text-sm uppercase whitespace-pre-line">{headlines.join('\n')}</div>
     </div>
   );
 }
