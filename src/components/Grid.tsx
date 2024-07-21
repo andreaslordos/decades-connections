@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Cell from "./Cell";
 import { GetTodaysGame, ShuffleArray } from "../lib/helpers";
 import GameControls from "./GameControls";
@@ -20,7 +20,7 @@ export default function Grid() {
         
         // If there's no saved state or it's not from today, start a new game
         return {
-            game: ShuffleArray(todaysGame),
+            game: todaysGame,
             originalGame: todaysGame, // Store the original unshuffled game
             selectedCells: [],
             lives: MAX_MISTAKES,
@@ -33,6 +33,17 @@ export default function Grid() {
     useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify(gameState));
     }, [gameState]);
+
+    const shuffledCells = useMemo(() => {
+        const cells = gameState.game.flatMap((category: { words: any[]; difficulty: any; }, categoryIndex: any) =>
+            category.words.map((word: any) => ({
+                word,
+                difficulty: category.difficulty,
+                categoryIndex
+            }))
+        );
+        return ShuffleArray(cells);
+    }, [gameState.game, shuffleKey]);
         
     const handleCellClick = (word: string) => {
         setGameState((prevState: { selectedCells: string[]; }) => ({
@@ -83,25 +94,6 @@ export default function Grid() {
         }));
     };
 
-    let cells: JSX.Element[] = [];
-
-    for (let cat_ind = 0; cat_ind < gameState.game.length; cat_ind++) {
-        for (let word_ind = 0; word_ind < gameState.game[cat_ind].words.length; word_ind++) {
-            const word = gameState.game[cat_ind].words[word_ind];
-            cells.push(
-                <Cell
-                    key={`${shuffleKey}-${cat_ind}-${word_ind}-${word}`}
-                    difficulty={gameState.game[cat_ind].difficulty}
-                    word={word}
-                    isSelected={gameState.selectedCells.includes(word)}
-                    onClick={() => handleCellClick(word)}
-                    disableCursor={gameState.selectedCells.length >= 4}
-                    shouldAnimate={true}
-                />
-            );
-        }
-    }
-
     return (
         <div className="space-y-4"> {/* Reduced space-y value */}
             {gameState.completedCategories.length > 0 && (
@@ -117,7 +109,17 @@ export default function Grid() {
                 </div>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
-                {cells}
+                {shuffledCells.map((cellData, index) => (
+                    <Cell
+                        key={`${shuffleKey}-${index}-${cellData.word}`}
+                        difficulty={cellData.difficulty}
+                        word={cellData.word}
+                        isSelected={gameState.selectedCells.includes(cellData.word)}
+                        onClick={() => handleCellClick(cellData.word)}
+                        disableCursor={gameState.selectedCells.length >= 4}
+                        shouldAnimate={true}
+                    />
+                ))}
             </div>
             <GameControls 
                 selectedCellsCount={gameState.selectedCells.length}
