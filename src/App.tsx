@@ -5,11 +5,13 @@ import React from 'react';
 
 function App() {
   return (
-    <div className="text-center mx-auto space-y-8 pt-safe">
+    <div className="text-center mx-auto pt-safe">
       <Header/>
-      <Explainer/>
-      <Grid/>
-      <div className="h-8"/>
+      <div className="space-y-8 mt-8">
+        <Explainer/>
+        <Grid/>
+        <div className="h-8"/>
+      </div>
     </div>
   );
 }
