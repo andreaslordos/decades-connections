@@ -63,7 +63,7 @@ export default function Grid() {
 
     return (
         <>
-            <div className="grid grid-cols-4 gap-4 mx-auto w-8/12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto w-11/12 md:w-8/12">
                 {cells}
             </div>
             <GameControls 

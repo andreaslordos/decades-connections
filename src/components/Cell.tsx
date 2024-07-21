@@ -30,7 +30,6 @@ export default function Cell({ word, isSelected, onClick, disableCursor, shouldA
                         rounded
                         uppercase
                         select-none
-                        text-xs
                         ${isSelected ? 'bg-selected text-white' : 'bg-unselected'}
                         ${(!disableCursor || isSelected) ? 'hover:cursor-pointer active:scale-95 duration-150 transition-transform' : 'hover:cursor-default'}
                         `}
