@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "./Button";
+import { MAX_MISTAKES } from "../lib/constants";
 
 type GameControlsProps = {
     selectedCellsCount: number;
@@ -14,22 +15,24 @@ export default function GameControls({ selectedCellsCount, onDeselectAll, onShuf
     const shuffleEnabled = true;
     const deselectAllEnabled = selectedCellsCount > 0;
     const circles = Array.from({ length: lives }, (_, index) => (
-        <span key={index} className="inline-block w-4 h-4 bg-gray-500 rounded-full"></span>
+        <span
+            key={index}
+            className={`inline-block w-4 h-4 rounded-full ${index < lives ? 'bg-gray-500' : 'bg-gray-300'}`}
+        ></span>
     ));
-
 
     return (
         <div className="space-y-4">
-            <div className="space-x-2 flex justify-center">
+            <div className="space-x-2 flex justify-center items-center">
                 <p>Mistakes Remaining:</p>
-                <div className="space-x-1">
+                <div className="flex space-x-1" style={{ width: `${MAX_MISTAKES * 1.25}rem` }}>
                     {circles}
                 </div>
             </div>
-            <div className="space-x-4">
-                <Button text="Shuffle" enabled={shuffleEnabled} onClick={onShuffle}/>
-                <Button text="Deselect All" enabled={deselectAllEnabled} onClick={onDeselectAll}/>
-                <Button text="Submit" enabled={submitEnabled} invertColors={submitEnabled} onClick={onSubmit}/>            
+            <div className="space-x-4 flex justify-center">
+                <Button text="Shuffle" enabled={shuffleEnabled} onClick={onShuffle} />
+                <Button text="Clear" enabled={deselectAllEnabled} onClick={onDeselectAll} />
+                <Button text="Submit" enabled={submitEnabled} invertColors={submitEnabled} onClick={onSubmit} />
             </div>
         </div>
     );

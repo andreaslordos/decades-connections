@@ -2,60 +2,87 @@ import React, { useState, useEffect } from "react";
 import Cell from "./Cell";
 import { GetTodaysGame, ShuffleArray } from "../lib/helpers";
 import GameControls from "./GameControls";
+import { MAX_MISTAKES } from "../lib/constants";
 
 export default function Grid() {
-    const [game, setGame] = useState<any[]>([]);
-    const [selectedCells, setSelectedCells] = useState<string[]>([]);
+    const [gameState, setGameState] = useState(() => {
+        const savedState = localStorage.getItem('gameState-decades-agl');
+        if (savedState) {
+            return JSON.parse(savedState);
+        }
+        return {
+            game: ShuffleArray(GetTodaysGame()),
+            selectedCells: [],
+            lives: MAX_MISTAKES,
+        };
+    });
+
     const [shuffleKey, setShuffleKey] = useState(0);
 
     useEffect(() => {
-        const todaysGame = GetTodaysGame();
-        const shuffledGame = ShuffleArray(todaysGame);
-        setGame(shuffledGame);
-        setShuffleKey(prevKey => prevKey + 1);
-    }, []);
+        localStorage.setItem('gameState-decades-agl', JSON.stringify(gameState));
+    }, [gameState]);
 
     const handleCellClick = (word: string) => {
-        setSelectedCells(prev => {
-            if (prev.includes(word)) {
-                return prev.filter(cell => cell !== word);
-            }
-            if (prev.length < 4) {
-                return [...prev, word];
-            }
-            return prev;
-        });
+        setGameState((prevState: { selectedCells: string[]; }) => ({
+            ...prevState,
+            selectedCells: prevState.selectedCells.includes(word)
+                ? prevState.selectedCells.filter((cell: string) => cell !== word)
+                : prevState.selectedCells.length < 4
+                    ? [...prevState.selectedCells, word]
+                    : prevState.selectedCells
+        }));
     };
 
     const handleDeselectAll = () => {
-        setSelectedCells([]);
+        setGameState((prevState: any) => ({
+            ...prevState,
+            selectedCells: []
+        }));
     };
 
     const handleShuffle = () => {
-        setGame(prevGame => {
-            const newGame = [...prevGame];
-            for (let category of newGame) {
-                category.words = ShuffleArray([...category.words]);
-            }
-            setShuffleKey(prevKey => prevKey + 1); // Update key on shuffle
-            return ShuffleArray(newGame);
-        });
+        setGameState((prevState: { game: any[]; }) => ({
+            ...prevState,
+            game: ShuffleArray(prevState.game.map((category: { words: any; }) => ({
+                ...category,
+                words: ShuffleArray([...category.words])
+            })))
+        }));
+        setShuffleKey(prevKey => prevKey + 1);
+    };
+
+    const handleSubmit = () => {
+        if (gameState.selectedCells.length !== 4) return;
+
+        const selectedCategory = gameState.game.find((category: { words: any[]; }) => 
+            category.words.every((word: string) => gameState.selectedCells.includes(word))
+        );
+
+        setGameState((prevState: { game: any[]; selectedCells: string[]; lives: number; }) => ({
+            ...prevState,
+            game: selectedCategory 
+                ? prevState.game.filter((category: any) => category !== selectedCategory)
+                : prevState.game,
+            selectedCells: selectedCategory ? [] : prevState.selectedCells,
+            lives: selectedCategory ? prevState.lives : prevState.lives - 1
+        }));
     };
 
     let cells: JSX.Element[] = [];
 
-    for (let cat_ind = 0; cat_ind < game.length; cat_ind++) {
-        for (let word_ind = 0; word_ind < game[cat_ind].words.length; word_ind++) {
-            const word = game[cat_ind].words[word_ind];
+    for (let cat_ind = 0; cat_ind < gameState.game.length; cat_ind++) {
+        for (let word_ind = 0; word_ind < gameState.game[cat_ind].words.length; word_ind++) {
+            const word = gameState.game[cat_ind].words[word_ind];
             cells.push(
                 <Cell
-                    key={`${shuffleKey}-${cat_ind}-${word_ind}-${word}`} // Use shuffleKey to ensure reanimation
-                    difficulty={game[cat_ind].difficulty}
+                    key={`${shuffleKey}-${cat_ind}-${word_ind}-${word}`}
+                    difficulty={gameState.game[cat_ind].difficulty}
                     word={word}
-                    isSelected={selectedCells.includes(word)}
+                    isSelected={gameState.selectedCells.includes(word)}
                     onClick={() => handleCellClick(word)}
-                    disableCursor={selectedCells.length >= 4}
-                    shouldAnimate={true} // Always animate
+                    disableCursor={gameState.selectedCells.length >= 4}
+                    shouldAnimate={true}
                 />
             );
         }
@@ -67,11 +94,11 @@ export default function Grid() {
                 {cells}
             </div>
             <GameControls 
-                selectedCellsCount={selectedCells.length}
+                selectedCellsCount={gameState.selectedCells.length}
                 onDeselectAll={handleDeselectAll}
                 onShuffle={handleShuffle}
-                onSubmit={() => {}}
-                lives={4}
+                onSubmit={handleSubmit}
+                lives={gameState.lives}
             />
         </>
     );
