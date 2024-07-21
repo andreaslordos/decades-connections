@@ -53,7 +53,8 @@ export default function Cell({
                         `}
             onClick={onClick}
             style={{
-                animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms'
+                animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms',
+                animation: isSelected && shakeAnimation ? 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both' : 'none'
             }}
         >
             <span className={`${animate ? 'fade-in' : ''} ${isSelected ? 'text-white' : ''}`}>
