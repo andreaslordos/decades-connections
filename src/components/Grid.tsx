@@ -4,6 +4,7 @@ import { GetTodaysGame, ShuffleArray } from "../lib/helpers";
 import GameControls from "./GameControls";
 import CompletedCategory from "./CompletedCategory";
 import { MAX_MISTAKES } from "../lib/constants";
+import Modal from "./Modal";
 
 export default function Grid() {
     const [gameState, setGameState] = useState(() => {
@@ -34,6 +35,7 @@ export default function Grid() {
     const [shakeAnimation, setShakeAnimation] = useState(false);
     const [showOneAwayModal, setShowOneAwayModal] = useState(false);
     const [fadeOutModal, setFadeOutModal] = useState(false);
+    const [jumpAnimation, setJumpAnimation] = useState(false);
 
 
     useEffect(() => {
@@ -93,7 +95,7 @@ export default function Grid() {
 
     const handleSubmit = () => {
         if (gameState.selectedCells.length !== 4) return;
-
+                
         const selectedCategory = gameState.game.find((category: { words: any[]; }) => 
             category.words.every((word: string) => gameState.selectedCells.includes(word))
         );
@@ -128,16 +130,22 @@ export default function Grid() {
                 ...prevState,
                 incorrectGuesses: new Set([...prevState.incorrectGuesses, prevState.selectedCells]),
                 lives: prevState.lives - 1,
-                selectedCells: [], // Clear selected cells after an incorrect guess
             }));
         } else {
             // Correct guess
-            setGameState((prevState: any) => ({
-                ...prevState,
-                game: prevState.game.filter((category: any) => category !== selectedCategory),
-                selectedCells: [],
-                completedCategories: [...prevState.completedCategories, selectedCategory],
-            }));
+            // Trigger jump animation
+            setJumpAnimation(true);
+            
+            // Delay the state update until after the animation completes
+            setTimeout(() => {
+                setJumpAnimation(false);
+                setGameState((prevState: any) => ({
+                    ...prevState,
+                    game: prevState.game.filter((category: any) => category !== selectedCategory),
+                    selectedCells: [],
+                    completedCategories: [...prevState.completedCategories, selectedCategory],
+                }));
+            }, 1000); // This should match the duration of your jump animation
         }
     };
 
@@ -147,12 +155,7 @@ export default function Grid() {
     return (
         <div className="space-y-4 relative">
             {showOneAwayModal && (
-                <div className={`fixed left-0 right-0 z-50 flex justify-center ${fadeOutModal ? 'fade-out' : 'fade-in'}
-                                 top-4 md:top-[10%] pt-safe`}>
-                    <div className="bg-black text-white px-4 py-2 rounded-md shadow-lg">
-                        One away...
-                    </div>
-                </div>
+                <Modal fadeOutModal={fadeOutModal} text='One away'/>
             )}
             {gameState.completedCategories.length > 0 && (
                 <div className="space-y-2 gap-4 mx-auto w-11/12 md:w-8/12">
@@ -177,6 +180,8 @@ export default function Grid() {
                         disableCursor={gameState.selectedCells.length >= 4}
                         shouldAnimate={true}
                         shakeAnimation={shakeAnimation}
+                        jumpAnimation={jumpAnimation}
+                        jumpDelay={gameState.selectedCells.indexOf(cellData.word) * 100}
                     />
                 ))}
             </div>

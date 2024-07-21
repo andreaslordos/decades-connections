@@ -8,6 +8,8 @@ type CellProps = {
     disableCursor: boolean;
     shouldAnimate: boolean;
     shakeAnimation: boolean;
+    jumpAnimation: boolean;
+    jumpDelay: number;
 };
 
 export default function Cell({ 
@@ -16,7 +18,9 @@ export default function Cell({
     onClick, 
     disableCursor, 
     shouldAnimate,
-    shakeAnimation
+    shakeAnimation,
+    jumpAnimation,
+    jumpDelay
 }: CellProps) {
     const [animate, setAnimate] = useState(false);
 
@@ -27,6 +31,11 @@ export default function Cell({
             return () => clearTimeout(timer);
         }
     }, [shouldAnimate]);
+
+    const animationClasses = [
+        isSelected && shakeAnimation ? 'animate-shake' : '',
+        isSelected && jumpAnimation ? 'animate-jump' : '',
+    ].filter(Boolean).join(' ');
 
     return (
         <div 
@@ -40,9 +49,12 @@ export default function Cell({
                         select-none
                         ${isSelected ? 'bg-selected text-white' : 'bg-unselected'}
                         ${(!disableCursor || isSelected) ? 'hover:cursor-pointer active:scale-95 duration-150 transition-transform' : 'hover:cursor-default'}
-                        ${isSelected && shakeAnimation ? 'animate-shake' : ''}
+                        ${animationClasses}
                         `}
             onClick={onClick}
+            style={{
+                animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms'
+            }}
         >
             <span className={`${animate ? 'fade-in' : ''} ${isSelected ? 'text-white' : ''}`}>
                 {word}
