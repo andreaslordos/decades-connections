@@ -44,7 +44,7 @@ export default function Cell({
                         items-center 
                         font-classic
                         justify-center 
-                        p-4 
+                        p-2 sm:p-4 
                         rounded
                         uppercase
                         select-none
@@ -57,7 +57,7 @@ export default function Cell({
                 animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms',
             }}
         >
-            <span className={isSelected ? 'text-white' : ''}>
+            <span className={`text-xs sm:text-sm md:text-base ${isSelected ? 'text-white' : ''}`}>
                 {word}
             </span>
         </div>
