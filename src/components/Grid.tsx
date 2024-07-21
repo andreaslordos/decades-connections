@@ -52,23 +52,6 @@ export default function Grid() {
 
     const daysSinceStart = useMemo(() => DaysSinceStart(), []);
 
-    useEffect(() => {
-        if (!gameEndProcessed && (gameState.lives === 0 || gameState.completedCategories.length === gameState.originalGame.length)) {
-            setGameEnded(true);
-            setGameEndProcessed(true);
-            
-            const remainingCategories = gameState.game.filter((category: any) =>
-                !gameState.completedCategories.includes(category)
-            );
-            
-            if (remainingCategories.length > 0) {
-                animateCategoriesSequentially(remainingCategories);
-            } else {
-                setShowShareModal(true);
-            }
-        }
-    }, [gameState.lives, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
-
     const animateCategoriesSequentially = (categories: any[]) => {
         if (categories.length === 0) {
             setShowShareModal(true);
@@ -102,6 +85,23 @@ export default function Grid() {
     };
 
     useEffect(() => {
+        if (!gameEndProcessed && (gameState.lives === 0 || gameState.completedCategories.length === gameState.originalGame.length)) {
+            setGameEnded(true);
+            setGameEndProcessed(true);
+            
+            const remainingCategories = gameState.game.filter((category: any) =>
+                !gameState.completedCategories.includes(category)
+            );
+            
+            if (remainingCategories.length > 0) {
+                animateCategoriesSequentially(remainingCategories);
+            } else {
+                setShowShareModal(true);
+            }
+        }
+    }, [gameState.lives, animateCategoriesSequentially, gameState.completedCategories, gameState.completedCategories.length, gameState.game, gameState.originalGame, gameEndProcessed]);
+
+    useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({
             ...gameState,
             incorrectGuesses: Array.from(gameState.incorrectGuesses)
@@ -117,7 +117,7 @@ export default function Grid() {
             }))
         );
         return ShuffleArray(cells);
-    }, [gameState.game, shuffleKey]);
+    }, [gameState.game]);
 
     const handleModeToggle = () => {
         setGameState((prevState) => ({
