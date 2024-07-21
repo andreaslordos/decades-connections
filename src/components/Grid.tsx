@@ -12,6 +12,12 @@ import ShareModal from "./ShareModal";
 import Button from "./Button";
 
 export default function Grid() {
+    const [shuffleKey, setShuffleKey] = useState(0);
+    const [shakeAnimation, setShakeAnimation] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalText, setModalText] = useState("");
+    const [fadeOutModal, setFadeOutModal] = useState(false);
+    const [jumpAnimation, setJumpAnimation] = useState(false);
     const [gameState, setGameState] = useState<GameState>(() => {
         const savedState = localStorage.getItem('gameState-decades-agl-123442');
         const todaysGame = GetTodaysGame();
@@ -81,14 +87,6 @@ export default function Grid() {
     useEffect(() => {
         localStorage.setItem('gameMode-decades-agl-123442', JSON.stringify(isEasyMode));
     }, [isEasyMode]);
-
-    const [shuffleKey, setShuffleKey] = useState(0);
-    const [shakeAnimation, setShakeAnimation] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [modalText, setModalText] = useState("");
-    const [fadeOutModal, setFadeOutModal] = useState(false);
-    const [jumpAnimation, setJumpAnimation] = useState(false);
-
 
     useEffect(() => {
         localStorage.setItem('gameState-decades-agl-123442', JSON.stringify({

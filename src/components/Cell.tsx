@@ -35,6 +35,7 @@ export default function Cell({
     const animationClasses = [
         isSelected && shakeAnimation ? 'animate-shake' : '',
         isSelected && jumpAnimation ? 'animate-jump' : '',
+        animate ? 'fade-in' : '',
     ].filter(Boolean).join(' ');
 
     return (
@@ -54,10 +55,9 @@ export default function Cell({
             onClick={onClick}
             style={{
                 animationDelay: jumpAnimation ? `${jumpDelay}ms` : '0ms',
-                animation: isSelected && shakeAnimation ? 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both' : 'none'
             }}
         >
-            <span className={`${animate ? 'fade-in' : ''} ${isSelected ? 'text-white' : ''}`}>
+            <span className={isSelected ? 'text-white' : ''}>
                 {word}
             </span>
         </div>
