@@ -1,5 +1,7 @@
 # NYT Connections Template
 
+[Check out a demo here!](https://decades.lordos.tech)
+
 Build your own NYT connections game 
 
 1. Fork this repository
