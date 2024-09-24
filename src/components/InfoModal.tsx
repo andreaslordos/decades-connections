@@ -21,6 +21,7 @@ export default function InfoModal({ onClose }: InfoModalProps) {
                     <p><strong>How to play:</strong> Select four headlines and click 'Submit' to guess a category. You can make up to {MAX_MISTAKES} mistakes.</p><br />
                     <p><strong>Author:</strong> Andreas Lordos. Check out{' '} <a href="https://lordos.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">my website</a>. This game is heaviliy inspired by{' '} <a href="https://www.nytimes.com/games/connections" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">NYT Connections</a></p><br/>
                     <p><a href="https://github.com/andreaslordos/decades-connections" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">GitHub repo</a></p>
+                    <p><a href="https://buymeacoffee.com/lordos" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Buy me a coffee :)</a></p>
                     <p>Built with &hearts; for my friends.</p>
                 </div>
                 <Button
